@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI英语语法助手 | English Grammar Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --primary-light: #2d7d9e;
+            --primary-dark: #0f3d4f;
+            --accent: #ff6b35;
+            --accent-light: #ff8c61;
+            --bg-primary: #f8fafb;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --shadow-sm: 0 2px 8px rgba(26, 95, 122, 0.08);
+            --shadow-md: 0 4px 16px rgba(26, 95, 122, 0.12);
+            --shadow-lg: 0 8px 32px rgba(26, 95, 122, 0.16);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f5 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px 30px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .lang-toggle {
+            display: inline-flex;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .lang-toggle button {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-toggle button.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h3 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+        }
+
+        .topic-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .topic-btn {
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .topic-btn:hover {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .chat-container {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            height: 650px;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .input-area {
+            padding: 20px 24px;
+            background: linear-gradient(to top, var(--bg-primary), var(--bg-secondary));
+            border-top: 1px solid var(--border);
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .input-type-toggle {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .input-type-toggle button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-type-toggle button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper textarea {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            min-height: 56px;
+            max-height: 120px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(26, 95, 122, 0.1);
+        }
+
+        .voice-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .voice-button:active {
+            transform: scale(0.95);
+        }
+
+        .voice-button.recording {
+            background: linear-gradient(135deg, #e63946, #ff006e);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 16px rgba(230, 57, 70, 0);
+            }
+        }
+
+        .send-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .test-api-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .test-api-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .test-api-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-indicator {
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 16px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .settings-panel {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            margin-top: 24px;
+        }
+
+        .settings-panel h3 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+        }
+
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+        }
+
+        .setting-item label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .setting-item input[type="text"] {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .setting-item input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin: 12px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .welcome-message h2 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+        }
+
+        .speaker-icon {
+            cursor: pointer;
+            margin-left: 8px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .speaker-icon:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .chat-container {
+                height: 500px;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 AI English Grammar Coach</h1>
+            <p class="subtitle">龚凤乾教授的智能英语语法学习助手</p>
+            <div class="lang-toggle">
+                <button id="langEn" class="active">English</button>
+                <button id="langZh">中文</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <h3 id="topicsTitle">Grammar Topics</h3>
+                <div class="topic-list">
+                    <button class="topic-btn" data-topic="tenses">Tenses 时态</button>
+                    <button class="topic-btn" data-topic="articles">Articles 冠词</button>
+                    <button class="topic-btn" data-topic="prepositions">Prepositions 介词</button>
+                    <button class="topic-btn" data-topic="conditionals">Conditionals 条件句</button>
+                    <button class="topic-btn" data-topic="passive">Passive Voice 被动语态</button>
+                    <button class="topic-btn" data-topic="reported">Reported Speech 间接引语</button>
+                    <button class="topic-btn" data-topic="clauses">Clauses 从句</button>
+                    <button class="topic-btn" data-topic="modals">Modal Verbs 情态动词</button>
+                </div>
+            </aside>
+
+            <main>
+                <div class="chat-container">
+                    <div class="messages" id="messages">
+                        <div class="welcome-message">
+                            <h2>Welcome! 欢迎!</h2>
+                            <p>I'm your AI English Grammar Coach. Ask me anything about English grammar, or choose a topic from the sidebar.</p>
+                            <p>我是您的AI英语语法教练。您可以询问任何英语语法问题，或从侧边栏选择一个主题。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="input-area">
+                        <div class="input-controls">
+                            <div class="input-type-toggle">
+                                <button id="textInputBtn" class="active">
+                                    <span>✍️</span> Text
+                                </button>
+                                <button id="voiceInputBtn">
+                                    <span>🎤</span> Voice
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="input-wrapper">
+                            <textarea 
+                                id="messageInput" 
+                                placeholder="Type your question here... 在此输入您的问题..."
+                                rows="1"
+                            ></textarea>
+                            <button class="voice-button hidden" id="voiceBtn">🎤</button>
+                            <button class="send-button" id="sendBtn">➤</button>
+                        </div>
+                        
+                        <div class="status-indicator" id="statusIndicator"></div>
+                    </div>
+                </div>
+
+                <div class="settings-panel">
+                    <h3>⚙️ Settings 设置</h3>
+                    <div class="settings-group">
+                        <div class="setting-item">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 8px;">API Key Status / API 密钥状态:</label>
+                                <div id="apiKeyStatus" style="padding: 10px; background: var(--bg-primary); border-radius: 8px; font-family: monospace; font-size: 0.9rem;">
+                                    检查中... Checking...
+                                </div>
+                            </div>
+                        </div>
+                        <small style="color: var(--text-muted); padding: 0 12px; display: block; margin-top: 12px;">
+                            ℹ️ API Key 应在 Netlify 的环境变量中配置（变量名：<code>DEEPSEEK_API_KEY</code>）<br>
+                            API Key should be configured in Netlify Environment Variables (variable name: <code>DEEPSEEK_API_KEY</code>)
+                        </small>
+                        <div style="padding: 12px; text-align: center;">
+                            <button id="testApiBtn" class="test-api-btn">
+                                🧪 Test API Connection / 测试 API 连接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentLanguage = 'en';
+        let isRecording = false;
+        let recognition = null;
+        let conversationHistory = [];
+        let isVoiceMode = false;
+        let currentUtterance = null;
+
+        // Elements
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const apiKeyStatus = document.getElementById('apiKeyStatus');
+        const langEnBtn = document.getElementById('langEn');
+        const langZhBtn = document.getElementById('langZh');
+        const textInputBtn = document.getElementById('textInputBtn');
+        const voiceInputBtn = document.getElementById('voiceInputBtn');
+
+        // API Key will be provided by Netlify Function
+        let apiKey = null;
+
+        // Check API key on load
+        async function checkApiKey() {
+            try {
+                const response = await fetch('/.netlify/functions/get-api-key');
+                if (response.ok) {
+                    const data = await response.json();
+                    apiKey = data.apiKey;
+                    if (apiKey) {
+                        apiKeyStatus.textContent = '✅ API Key 已配置 / API Key Configured';
+                        apiKeyStatus.style.color = 'var(--primary)';
+                    } else {
+                        apiKeyStatus.textContent = '❌ API Key 未配置 / API Key Not Configured';
+                        apiKeyStatus.style.color = '#c33';
+                    }
+                } else {
+                    apiKeyStatus.textContent = '⚠️ 无法检查 API Key 状态 / Cannot check API Key status';
+                    apiKeyStatus.style.color = 'var(--text-muted)';
+                }
+            } catch (error) {
+                console.error('Failed to check API key:', error);
+                apiKeyStatus.textContent = '⚠️ 无法连接到服务器 / Cannot connect to server';
+                apiKeyStatus.style.color = 'var(--text-muted)';
+            }
+        }
+
+        // Check API key on page load
+        checkApiKey();
+
+        // Language toggle
+        langEnBtn.addEventListener('click', () => {
+            currentLanguage = 'en';
+            langEnBtn.classList.add('active');
+            langZhBtn.classList.remove('active');
+        });
+
+        langZhBtn.addEventListener('click', () => {
+            currentLanguage = 'zh';
+            langZhBtn.classList.add('active');
+            langEnBtn.classList.remove('active');
+        });
+
+        // Input mode toggle
+        textInputBtn.addEventListener('click', () => {
+            isVoiceMode = false;
+            textInputBtn.classList.add('active');
+            voiceInputBtn.classList.remove('active');
+            voiceBtn.classList.add('hidden');
+            messageInput.classList.remove('hidden');
+            messageInput.focus();
+        });
+
+        voiceInputBtn.addEventListener('click', () => {
+            isVoiceMode = true;
+            voiceInputBtn.classList.add('active');
+            textInputBtn.classList.remove('active');
+            voiceBtn.classList.remove('hidden');
+            messageInput.classList.add('hidden');
+            initSpeechRecognition();
+        });
+
+        // Topic buttons
+        document.querySelectorAll('.topic-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const topic = btn.dataset.topic;
+                const topicTexts = {
+                    tenses: 'Can you explain English tenses to me? / 请给我讲解英语时态',
+                    articles: 'Help me understand articles (a, an, the) / 帮我理解冠词的用法',
+                    prepositions: 'Explain English prepositions / 解释英语介词',
+                    conditionals: 'Teach me about conditional sentences / 教我条件句',
+                    passive: 'Explain passive voice / 解释被动语态',
+                    reported: 'Help with reported speech / 帮助理解间接引语',
+                    clauses: 'Explain different types of clauses / 解释不同类型的从句',
+                    modals: 'Teach me modal verbs / 教我情态动词'
+                };
+                messageInput.value = topicTexts[topic] || '';
+                sendMessage();
+            });
+        });
+
+        // Send message
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) {
+                console.log('No message to send');
+                return;
+            }
+
+            if (!apiKey) {
+                showError('API Key 未配置。请在 Netlify 环境变量中设置 DEEPSEEK_API_KEY。/ API Key not configured. Please set DEEPSEEK_API_KEY in Netlify Environment Variables.');
+                return;
+            }
+
+            console.log('Sending message:', message);
+
+            // Disable send button
+            sendBtn.disabled = true;
+
+            // Add user message
+            addMessage(message, 'user');
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+
+            try {
+                const response = await callDeepSeek(message, apiKey);
+                console.log('Received response:', response);
+                removeTypingIndicator(typingId);
+                addMessage(response, 'assistant', true);
+                
+                conversationHistory.push(
+                    { role: 'user', content: message },
+                    { role: 'assistant', content: response }
+                );
+            } catch (error) {
+                console.error('Error:', error);
+                removeTypingIndicator(typingId);
+                showError('错误 Error: ' + error.message + ' | 请检查 Netlify 环境变量配置或网络连接。');
+            } finally {
+                // Re-enable send button
+                sendBtn.disabled = false;
+            }
+        }
+
+        function addMessage(content, role, withSpeaker = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            if (withSpeaker && role === 'assistant') {
+                const speakerIcon = document.createElement('span');
+                speakerIcon.className = 'speaker-icon';
+                speakerIcon.textContent = '🔊';
+                speakerIcon.onclick = () => speakText(content);
+                contentDiv.appendChild(speakerIcon);
+            }
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+
+            // Remove welcome message if exists
+            const welcomeMsg = messagesContainer.querySelector('.welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.remove();
+            }
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Do NOT auto-speak - only speak when user clicks the speaker icon
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            const id = 'typing-' + Date.now();
+            typingDiv.id = id;
+            typingDiv.className = 'message assistant';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const typingDiv = document.getElementById(id);
+            if (typingDiv) {
+                typingDiv.remove();
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            messagesContainer.appendChild(errorDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        async function callDeepSeek(message, apiKey) {
+            const systemPrompt = `You are an expert English grammar teacher created by Professor Gong Fengqian (龚凤乾教授). Your role is to help Chinese students master English grammar through clear, accurate, and friendly explanations.
+
+Guidelines:
+- Provide bilingual responses (English/Chinese) when helpful
+- Use simple, clear language suitable for learners
+- Give practical examples for each grammar point
+- Be encouraging and supportive
+- When explaining, break down complex concepts into simple steps
+- Relate English grammar to Chinese when it helps understanding
+- Use formatting to make explanations clear (but keep it natural)
+
+Always be patient, clear, and encouraging. Your goal is to help students build confidence in English grammar.`;
+
+            const messages = [
+                { role: 'system', content: systemPrompt },
+                ...conversationHistory.slice(-6), // Keep last 3 exchanges
+                { role: 'user', content: message }
+            ];
+
+            console.log('Calling DeepSeek API...');
+            console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
+
+            try {
+                const response = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 2000
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    let errorMessage = 'API request failed';
+                    try {
+                        const error = await response.json();
+                        console.error('API Error:', error);
+                        errorMessage = error.error?.message || error.message || `HTTP ${response.status}: ${response.statusText}`;
+                    } catch (e) {
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('Invalid response format from API');
+                }
+                
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    throw new Error('网络错误：无法连接到 DeepSeek API。请检查您的网络连接。/ Network error: Cannot connect to DeepSeek API. Please check your internet connection.');
+                }
+                throw error;
+            }
+        }
+
+        // Text-to-Speech
+        function speakText(text) {
+            // Stop any current speech
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+            }
+
+            // Remove ALL special characters and symbols that might be read aloud
+            // Keep only letters, numbers, spaces, and Chinese characters
+            let cleanText = text
+                .replace(/[#*_\-\/\\,;:!?(){}[\]<>"'`~@$%^&+=|.]/g, ' ')  // Remove all symbols
+                .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+                .trim();
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            currentUtterance = utterance;
+
+            // Set language based on content
+            const hasEnglish = /[a-zA-Z]/.test(text);
+            const hasChinese = /[\u4e00-\u9fa5]/.test(text);
+
+            if (hasEnglish && !hasChinese) {
+                utterance.lang = 'en-US';
+            } else if (hasChinese && !hasEnglish) {
+                utterance.lang = 'zh-CN';
+            } else {
+                utterance.lang = currentLanguage === 'zh' ? 'zh-CN' : 'en-US';
+            }
+
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            utterance.onend = () => {
+                currentUtterance = null;
+            };
+
+            utterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event);
+                currentUtterance = null;
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        // Speech Recognition
+        function initSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showError('Speech recognition is not supported in this browser. Please use Chrome or Edge. / 此浏览器不支持语音识别，请使用 Chrome 或 Edge。');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = currentLanguage === 'zh' ? 'zh-CN' : 'en-US';
+
+            recognition.onstart = () => {
+                isRecording = true;
+                voiceBtn.classList.add('recording');
+                statusIndicator.textContent = currentLanguage === 'zh' ? '正在录音...' : 'Recording...';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                console.log('Voice input:', transcript);
+                messageInput.value = transcript;
+                statusIndicator.textContent = '';
+                // Switch to text mode to show the recognized text
+                isVoiceMode = false;
+                textInputBtn.classList.add('active');
+                voiceInputBtn.classList.remove('active');
+                voiceBtn.classList.add('hidden');
+                messageInput.classList.remove('hidden');
+                messageInput.focus();
+                // Auto send after voice input
+                setTimeout(() => sendMessage(), 500);
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                statusIndicator.textContent = '';
+                showError('Speech recognition error: ' + event.error);
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                statusIndicator.textContent = '';
+            };
+        }
+
+        voiceBtn.addEventListener('click', () => {
+            if (!recognition) {
+                initSpeechRecognition();
+            }
+
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.lang = currentLanguage === 'zh' ? 'zh-CN' : 'en-US';
+                recognition.start();
+            }
+        });
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Test API button
+        document.getElementById('testApiBtn').addEventListener('click', async () => {
+            if (!apiKey) {
+                showError('API Key 未配置。请在 Netlify 环境变量中设置。/ API Key not configured. Please set in Netlify Environment Variables.');
+                return;
+            }
+
+            const testBtn = document.getElementById('testApiBtn');
+            testBtn.disabled = true;
+            testBtn.textContent = '测试中... Testing...';
+
+            try {
+                console.log('Testing API connection...');
+                const testMessage = 'Hello, please respond with "Connection successful" in both English and Chinese.';
+                const response = await callDeepSeek(testMessage, apiKey);
+                console.log('Test successful:', response);
+                
+                // Show success message in chat
+                addMessage(testMessage, 'user');
+                addMessage(response, 'assistant', true);
+                
+                showError('✅ API 连接成功！/ API Connection Successful!');
+                setTimeout(() => {
+                    const errorDivs = document.querySelectorAll('.error-message');
+                    errorDivs[errorDivs.length - 1].style.background = '#e6ffe6';
+                    errorDivs[errorDivs.length - 1].style.color = '#2d7d2d';
+                    errorDivs[errorDivs.length - 1].style.borderLeft = '4px solid #2d7d2d';
+                }, 10);
+            } catch (error) {
+                console.error('Test failed:', error);
+                showError('❌ API 测试失败 / API Test Failed: ' + error.message);
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🧪 Test API Connection / 测试 API 连接';
+            }
+        });
+    </script>
+</body>
+</html>
